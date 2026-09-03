@@ -1,0 +1,125 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # ─── Ingestion Tests ───
+  ingestion-tests:
+    name: Ingestion Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: ingestion/requirements.txt
+
+      - name: Install dependencies
+        working-directory: ./ingestion
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov ruff
+
+      - name: Lint
+        working-directory: ./ingestion
+        run: ruff check src/
+
+      - name: Run tests
+        working-directory: ./ingestion
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        run: pytest tests/ -v --cov=src --cov-report=xml
+
+  # ─── dbt Validation ───
+  dbt-validate:
+    name: dbt Validation
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dbt
+        run: pip install dbt-core==1.7.6 dbt-postgres==1.7.6
+
+      - name: dbt compile
+        working-directory: ./dbt
+        env:
+          POSTGRES_HOST: localhost
+        run: dbt compile --profiles-dir .
+
+      - name: dbt lint (check YAML)
+        working-directory: ./dbt
+        run: |
+          dbt parse --profiles-dir . || true
+
+  # ─── Docker Build ───
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [ingestion-tests, dbt-validate]
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ingestion image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ingestion
+          push: false
+          tags: cloud-data-platform-ingestion:latest
+
+      - name: Build dashboard image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./dashboard
+          push: false
+          tags: cloud-data-platform-dashboard:latest

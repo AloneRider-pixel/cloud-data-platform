@@ -1,0 +1,49 @@
+# Dependencies
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# Airflow
+airflow/logs/
+
+# Docker
+docker-compose.override.yml
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Data
+*.parquet
+*.csv
+data/
+
+# Model weights
+models/
