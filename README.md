@@ -1,254 +1,178 @@
-# 🏗️ Cloud ETL & Analytics Platform
+# 🏗️ Cloud Data Platform
 
-**End-to-End Data Engineering Platform** — Batch & streaming ingestion, orchestrated ETL pipelines, dbt transformations, data quality, and analytics dashboards.
+[![CI](https://github.com/AloneRider-pixel/cloud-data-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/AloneRider-pixel/cloud-data-platform/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
+**End-to-end data engineering platform for batch and streaming ingestion, orchestration, transformation, data quality, and analytics.**
 
-## 🏗️ Architecture
+> **Portfolio focus:** data engineering + ETL/ELT + Airflow + dbt + AWS + warehouse modeling + data quality.
 
-```
-REST APIs / CSV / Event Streams
-         ↓
-   Python Ingestion Layer
-   (Extractors + Validators)
-         ↓
-     AWS S3 (Raw Zone)
-   (Parquet, partitioned)
-         ↓
-     Apache Airflow
-   (Orchestration + Monitoring)
-         ↓
-      dbt Core
-   (Transform + Test)
-         ↓
-   PostgreSQL / Snowflake
-   (Raw → Clean → Analytics)
-         ↓
-   Analytics Dashboard
-   (Streamlit / Metabase)
+## Architecture
+
+```mermaid
+graph LR
+    SRC[REST APIs / CSV / Event Streams]
+    ING[Python Ingestion\nExtract + Validate]
+    RAW[AWS S3 / MinIO\nRaw Parquet]
+    AIR[Apache Airflow\nOrchestration]
+    DBT[dbt Core\nTransform + Test]
+    WH[(PostgreSQL / Snowflake)]
+    BI[Streamlit / Metabase\nAnalytics]
+
+    SRC --> ING --> RAW --> AIR --> DBT --> WH --> BI
 ```
 
-## ✨ Features
+## What this project demonstrates
 
 ### Ingestion
-- **REST API Extraction** — Paginated API ingestion with rate limiting & retries
-- **CSV Batch Loading** — Multi-file CSV ingestion with schema validation
-- **Event Stream Processing** — Simulated event ingestion from Kinesis/SQS
-- **Incremental Loading** — Watermark-based delta detection for efficient loads
-- **Idempotent Pipelines** — Safe to re-run without data duplication
+- Paginated REST API ingestion with retries and rate limiting.
+- Multi-file CSV ingestion with schema validation.
+- Simulated event-stream ingestion.
+- Watermark-based incremental loading.
+- Idempotent load patterns to make pipeline reruns safe.
 
-### Orchestration (Airflow)
-- **Batch ETL DAG** — Full refresh pipeline for small/medium datasets
-- **Incremental DAG** — Delta-only processing for large datasets
-- **API Ingestion DAG** — Scheduled API pulls with backfill support
-- **Data Quality DAG** — Automated data quality checks post-load
-- **Retry & Alerting** — Configurable retries with Slack/email notifications
-- **Data Lineage** — DAG-level lineage tracking across pipeline stages
+### Orchestration
+- Batch and incremental Airflow DAGs.
+- Scheduled API ingestion with backfill support.
+- Post-load data-quality orchestration.
+- Retry and alerting hooks.
+- Pipeline-level monitoring and SLA tracking.
 
-### Transformation (dbt)
-- **Layered Architecture** — Staging → Intermediate → Analytics models
-- **Incremental Models** — Efficient updates using merge strategies
-- **Schema Validation** — Auto-generated schema tests on all models
-- **Data Quality Tests** — Uniqueness, non-null, referential integrity, accepted values
-- **Reusable Macros** — Custom Jinja macros for common patterns
-- **Documentation** — Auto-generated model docs with column descriptions
+### Transformation
+- dbt staging → intermediate → analytics layers.
+- Incremental models with merge strategies.
+- Schema, uniqueness, null, relationship, and accepted-value tests.
+- Reusable Jinja macros.
+- Model documentation and metadata.
 
-### Data Quality
-- **Great Expectations-style tests** — Built into dbt test framework
-- **Schema drift detection** — Alerts on unexpected column changes
-- **Row count validation** — Source vs target reconciliation
-- **Freshness checks** — Detect stale data in production tables
-- **Anomaly detection** — Statistical outlier flagging
+### Data quality
+- Schema-drift detection.
+- Source-to-target row-count reconciliation.
+- Freshness checks.
+- Distribution/anomaly checks.
+- Automated quality gates in the pipeline.
 
 ### Infrastructure
-- **Docker Compose** — Full local development environment
-- **GitHub Actions CI/CD** — Automated testing, linting, and deployment
-- **AWS S3** — Raw data lake with partitioned Parquet storage
-- **PostgreSQL/Snowflake** — Analytical warehouse with layered schemas
-- **Monitoring** — Pipeline health dashboard with SLA tracking
+- Docker Compose for local development.
+- AWS S3-compatible raw-data storage.
+- PostgreSQL and Snowflake warehouse targets.
+- GitHub Actions for CI/CD.
 
----
+## Data layers
 
-## 🛠️ Tech Stack
+| Layer | Purpose |
+|---|---|
+| **Bronze / Raw** | Source-aligned Parquet data with partitioning and auditability |
+| **Silver / Clean** | Deduplication, validation, type normalization, integrity checks |
+| **Gold / Analytics** | Business-ready models, aggregates, KPIs, and BI-oriented schemas |
+
+## Technology stack
 
 | Layer | Technology |
-|-------|-----------|
+|---|---|
 | Ingestion | Python 3.11, Requests, Pandas, PyArrow |
 | Orchestration | Apache Airflow 2.8 |
 | Transformation | dbt Core 1.7 |
+| Storage | AWS S3, MinIO |
 | Warehouse | PostgreSQL 16, Snowflake |
-| Storage | AWS S3, Local MinIO |
 | Quality | dbt tests, custom SQL assertions |
 | Dashboard | Streamlit |
-| Infra | Docker, GitHub Actions, AWS |
+| Infrastructure | Docker, GitHub Actions, AWS |
 
----
+## Repository structure
 
-## 🚀 Quick Start
+```text
+cloud-data-platform/
+├── ingestion/
+│   ├── src/
+│   │   ├── extractors/
+│   │   ├── loaders/
+│   │   ├── validators/
+│   │   └── transforms/
+│   └── tests/
+├── airflow/
+│   ├── dags/
+│   ├── plugins/
+│   └── config/
+├── dbt/
+│   ├── models/
+│   │   ├── staging/
+│   │   ├── intermediate/
+│   │   └── analytics/
+│   ├── tests/
+│   ├── macros/
+│   └── snapshots/
+├── warehouse/
+├── dashboard/
+├── monitoring/
+├── scripts/
+├── tests/
+├── .github/workflows/ci.yml
+├── docker-compose.yml
+└── README.md
+```
+
+## Local development
 
 ### Prerequisites
-- Docker & Docker Compose
-- Python 3.11+
-- AWS credentials (optional, uses MinIO locally)
 
-### 1. Clone & Configure
+- Docker + Docker Compose
+- Python 3.11+
+- AWS credentials for real S3 usage (optional; MinIO can be used locally)
+
+### Start services
 
 ```bash
 git clone https://github.com/AloneRider-pixel/cloud-data-platform.git
 cd cloud-data-platform
 cp .env.example .env
-```
-
-### 2. Start All Services
-
-```bash
 docker-compose up -d
 ```
 
-This starts:
-- **PostgreSQL** → localhost:5432
-- **MinIO (S3)** → localhost:9000 (Console: localhost:9001)
-- **Airflow** → localhost:8080
-- **Streamlit Dashboard** → localhost:8501
+The local stack provides PostgreSQL, MinIO, Airflow, and the Streamlit dashboard.
 
-### 3. Run Initial Data Load
+### Run the pipeline
 
 ```bash
 docker-compose exec ingestion python -m src.loaders.seed_data
-```
 
-### 4. Trigger Airflow DAGs
-
-Open http://localhost:8080 and unpause the DAGs, or:
-
-```bash
 docker-compose exec airflow-webserver airflow dags trigger etl_batch_pipeline
 docker-compose exec airflow-webserver airflow dags trigger api_ingestion_pipeline
-```
 
-### 5. Run dbt Transformations
-
-```bash
 docker-compose exec dbt dbt run --profiles-dir /root/.dbt
 docker-compose exec dbt dbt test --profiles-dir /root/.dbt
 ```
 
-### 6. View Dashboard
+Dashboard: `http://localhost:8501`
 
-Open http://localhost:8501
+Airflow: `http://localhost:8080`
 
----
+## Pipeline targets
 
-## 📁 Project Structure
-
-```
-cloud-data-platform/
-├── ingestion/                  # Python data extraction layer
-│   ├── src/
-│   │   ├── extractors/         # API, CSV, Event extractors
-│   │   ├── loaders/            # S3 & warehouse loaders
-│   │   ├── validators/         # Schema & data validation
-│   │   ├── transforms/         # Light pre-load transformations
-│   │   └── config.py           # Centralized configuration
-│   ├── tests/                  # Unit tests for ingestion
-│   ├── Dockerfile
-│   └── requirements.txt
-├── airflow/                    # Orchestration layer
-│   ├── dags/                   # Airflow DAG definitions
-│   │   ├── etl_batch_dag.py
-│   │   ├── etl_incremental_dag.py
-│   │   ├── api_ingestion_dag.py
-│   │   ├── data_quality_dag.py
-│   │   └── common/             # Shared operators & utilities
-│   ├── plugins/                # Custom Airflow plugins
-│   ├── config/                 # Airflow configuration
-│   └── Dockerfile
-├── dbt/                        # Transformation layer
-│   ├── models/
-│   │   ├── staging/            # Source-aligned models
-│   │   ├── intermediate/       # Business logic layer
-│   │   └── analytics/          # Final analytics models
-│   ├── tests/                  # Singular data tests
-│   ├── macros/                 # Reusable Jinja macros
-│   ├── seeds/                  # Seed/reference data
-│   ├── snapshots/              # SCD Type 2 snapshots
-│   ├── dbt_project.yml
-│   └── profiles.yml
-├── warehouse/                  # SQL definitions
-│   ├── migrations/             # Schema migrations
-│   ├── schemas/                # DDL for all schemas
-│   └── seeds/                  # Reference data SQL
-├── dashboard/                  # Analytics layer
-│   ├── src/
-│   │   ├── pages/              # Dashboard pages
-│   │   ├── components/         # Reusable UI components
-│   │   └── queries/            # SQL query library
-│   ├── Dockerfile
-│   └── requirements.txt
-├── monitoring/                 # Pipeline observability
-│   ├── checks/                 # Data quality checks
-│   ├── alerts/                 # Alerting configuration
-│   └── metrics/                # Custom metrics
-├── scripts/                    # Utility scripts
-│   ├── generate_mock_data.py
-│   ├── setup_warehouse.py
-│   └── run_pipeline.py
-├── tests/                      # Integration tests
-├── .github/workflows/ci.yml   # CI/CD pipeline
-├── docker-compose.yml
-└── .env.example
-```
-
----
-
-## 📊 Data Layers
-
-### Raw Layer (Bronze)
-- Direct copy of source data
-- Parquet format, partitioned by date
-- No transformations applied
-- Full audit trail preserved
-
-### Clean Layer (Silver)
-- Deduplicated and validated
-- Type casting and standardization
-- Referential integrity enforced
-- Slowly Changing Dimensions (SCD Type 2)
-
-### Analytics Layer (Gold)
-- Business-ready aggregated views
-- Optimized for dashboard queries
-- Pre-computed KPIs and metrics
-- Star schema for BI tools
-
----
-
-## 📈 Pipeline Metrics
+These values are **design targets**, not published benchmark results:
 
 | Metric | Target |
-|--------|--------|
-| Batch ETL Runtime | < 15 min |
-| Incremental Load | < 2 min |
-| Data Quality Pass Rate | > 99% |
-| Pipeline Success Rate | > 99.5% |
-| Data Freshness SLA | < 1 hour |
+|---|---:|
+| Batch ETL runtime | `< 15 min` |
+| Incremental load | `< 2 min` |
+| Data-quality pass rate | `> 99%` |
+| Pipeline success rate | `> 99.5%` |
+| Data freshness SLA | `< 1 hour` |
 
----
+When publishing measured performance, pair the number with dataset size, environment, run count, and reproducible benchmark instructions.
 
-## 🔒 Data Quality Framework
+## Testing
 
-| Check Type | Implementation |
-|-----------|---------------|
-| Schema validation | dbt `dbt expect_column_to_exist` |
-| Uniqueness | dbt `unique` test on primary keys |
-| Completeness | dbt `not_null` test on required fields |
-| Referential | dbt `relationships` test for FK integrity |
-| Freshness | dbt `source_freshness` for SLA monitoring |
-| Volume | Row count reconciliation source → target |
-| Distribution | Statistical bounds on key metrics |
+The repository separates ingestion unit tests from broader integration tests and dbt/data-quality checks. CI runs automated quality gates through GitHub Actions.
 
----
+## Roadmap
 
-## 📝 License
+- Managed-cloud deployment example with least-privilege IAM.
+- Automated data-lineage visualization.
+- Incremental Snowflake optimization benchmarks.
+- Great Expectations integration alongside dbt checks.
+- Production-style alerting and observability examples.
+
+## License
 
 MIT
