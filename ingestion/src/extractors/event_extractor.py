@@ -3,7 +3,6 @@ Event Stream Extractor.
 Handles ingestion from event sources (simulated Kinesis/SQS).
 Supports batch processing with checkpointing for exactly-once semantics.
 """
-import json
 import logging
 import time
 from datetime import datetime
@@ -15,100 +14,54 @@ logger = logging.getLogger(__name__)
 
 
 class EventExtractor:
-    """
-    Extracts events from streaming sources with:
-    - Batch processing with configurable batch sizes
-    - Checkpointing for exactly-once semantics
-    - Late-arriving data handling
-    - Event schema validation
-    """
+    """Extract events with batching and checkpointing."""
 
-    def __init__(
-        self,
-        batch_size: int = 1000,
-        max_wait_seconds: int = 60,
-        checkpoint_store: Optional[Any] = None,
-    ):
+    def __init__(self, batch_size: int = 1000, max_wait_seconds: int = 60, checkpoint_store: Optional[Any] = None):
         self.batch_size = batch_size
         self.max_wait_seconds = max_wait_seconds
         self.checkpoint_store = checkpoint_store
         self._current_offset = 0
 
-    def extract_from_queue(
-        self,
-        queue_name: str,
-        max_messages: int = None,
-    ) -> Generator[List[Dict], None, None]:
-        """
-        Extract events from a simulated message queue.
-        
-        Yields batches of events.
-        """
+    def extract_from_queue(self, queue_name: str, max_messages: int = None) -> Generator[List[Dict], None, None]:
+        """Extract events from a simulated message queue."""
         max_messages = max_messages or self.batch_size
         batch = []
         batch_start = time.time()
-
-        # Simulated event stream
         events = self._generate_simulated_events(queue_name, max_messages)
-        
+
         for event in events:
             batch.append(event)
 
             if len(batch) >= self.batch_size:
-                logger.info(f"Yielding batch of {len(batch)} events from {queue_name}")
+                logger.info("Yielding batch of %s events from %s", len(batch), queue_name)
                 yield batch
                 batch = []
                 batch_start = time.time()
 
-            # Time-based batch flushing
             if batch and (time.time() - batch_start) >= self.max_wait_seconds:
-                logger.info(f"Time-based flush: {len(batch)} events")
+                logger.info("Time-based flush: %s events", len(batch))
                 yield batch
                 batch = []
                 batch_start = time.time()
 
-        # Yield remaining events
         if batch:
             yield batch
 
-    def extract_with_checkpoint(
-        self,
-        source_name: str,
-        checkpoint_key: str = "default",
-    ) -> Generator[List[Dict], None, None]:
-        """
-        Extract events with checkpoint-based tracking.
-        Ensures no events are processed twice (idempotency).
-        """
-        # Get last checkpoint
+    def extract_with_checkpoint(self, source_name: str, checkpoint_key: str = "default") -> Generator[List[Dict], None, None]:
+        """Extract events with checkpoint-based tracking."""
         last_checkpoint = self._get_checkpoint(source_name, checkpoint_key)
-        logger.info(
-            f"Resuming from checkpoint: {source_name}/{checkpoint_key} "
-            f"at offset {last_checkpoint}"
-        )
+        logger.info("Resuming from checkpoint: %s/%s at offset %s", source_name, checkpoint_key, last_checkpoint)
 
         batch_count = 0
         for batch in self.extract_from_queue(source_name):
             batch_count += 1
-            
-            # Process batch
             yield batch
-
-            # Update checkpoint after successful processing
-            self._update_checkpoint(
-                source_name,
-                checkpoint_key,
-                last_checkpoint + len(batch),
-            )
+            self._update_checkpoint(source_name, checkpoint_key, last_checkpoint + len(batch))
             last_checkpoint += len(batch)
 
-        logger.info(f"Processed {batch_count} batches from {source_name}")
+        logger.info("Processed %s batches from %s", batch_count, source_name)
 
-    def _generate_simulated_events(
-        self,
-        queue_name: str,
-        count: int,
-    ) -> List[Dict]:
+    def _generate_simulated_events(self, queue_name: str, count: int) -> List[Dict]:
         """Generate simulated events for testing."""
         import random
 
@@ -116,20 +69,18 @@ class EventExtractor:
             "order_created", "order_updated", "order_shipped",
             "payment_processed", "refund_initiated", "user_signup",
         ]
-        
+
         events = []
         base_time = datetime.utcnow()
 
         for i in range(count):
-            event = {
+            events.append({
                 "event_id": f"evt-{queue_name}-{self._current_offset + i:08d}",
                 "event_type": random.choice(event_types),
                 "source": queue_name,
-                "timestamp": (
-                    base_time.replace(
-                        minute=random.randint(0, 59),
-                        second=random.randint(0, 59),
-                    )
+                "timestamp": base_time.replace(
+                    minute=random.randint(0, 59),
+                    second=random.randint(0, 59),
                 ).isoformat(),
                 "payload": {
                     "order_id": f"ORD-{random.randint(1000, 9999)}",
@@ -141,8 +92,7 @@ class EventExtractor:
                     "region": random.choice(["us-east", "us-west", "eu-west"]),
                     "version": "1.0",
                 },
-            }
-            events.append(event)
+            })
 
         self._current_offset += count
         return events
@@ -164,13 +114,11 @@ class EventExtractor:
             return pd.DataFrame()
 
         df = pd.json_normalize(events)
-        
-        # Flatten nested payload
+
         if "payload" in df.columns:
             payload_df = pd.json_normalize(df["payload"].tolist())
             df = pd.concat([df.drop(columns=["payload"]), payload_df], axis=1)
 
-        # Parse timestamps
         if "timestamp" in df.columns:
             df["timestamp"] = pd.to_datetime(df["timestamp"])
 
