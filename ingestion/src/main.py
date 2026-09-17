@@ -8,10 +8,9 @@ import pandas as pd
 
 from src.config import config
 from src.extractors.api_extractor import APIExtractor
-from src.extractors.csv_extractor import CSVExtractor
 from src.loaders.s3_loader import S3Loader
 from src.loaders.warehouse_loader import WarehouseLoader
-from src.validators.schema_validator import SchemaValidator, DataQualityChecker
+from src.validators.schema_validator import DataQualityChecker
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,15 +46,11 @@ def run_full_ingestion():
 
     # ─── Validate ───
     logger.info("\n🔍 Validating data...")
-    validator = SchemaValidator()
     checker = DataQualityChecker()
 
     orders_df = pd.DataFrame(all_orders)
     products_df = pd.DataFrame(all_products)
     customers_df = pd.DataFrame(all_customers)
-
-    # Schema validator is retained for future source-specific validation.
-    _ = validator
 
     # Quality checks
     checker.check_row_count(orders_df, min_rows=1)
