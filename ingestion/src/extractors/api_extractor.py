@@ -5,7 +5,7 @@ Handles paginated API ingestion with rate limiting, retries, and backoff.
 import logging
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, Generator, List, Optional
+from typing import Dict, Generator, List, Optional
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -38,7 +38,6 @@ class APIExtractor:
         self._session = requests.Session()
         self._last_request_time = 0
 
-        # Configure session
         self._session.headers.update({
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -58,7 +57,6 @@ class APIExtractor:
         json_body: Optional[Dict] = None,
     ) -> Dict:
         """Make an HTTP request with rate limiting and retries."""
-        # Rate limiting
         elapsed = time.time() - self._last_request_time
         min_interval = 1.0 / self.rate_limit_per_second
         if elapsed < min_interval:
@@ -87,11 +85,7 @@ class APIExtractor:
         total_key: str = "total",
         max_pages: Optional[int] = None,
     ) -> Generator[List[Dict], None, None]:
-        """
-        Extract data using offset-based pagination.
-        
-        Yields batches of records from each page.
-        """
+        """Extract data using offset-based pagination."""
         offset = 0
         page = 0
 
@@ -104,24 +98,27 @@ class APIExtractor:
                 limit_param: page_size,
             }
 
-            logger.info(f"Fetching page {page + 1}: offset={offset}, limit={page_size}")
+            logger.info("Fetching page %s: offset=%s, limit=%s", page + 1, offset, page_size)
             result = self._make_request("GET", endpoint, params=params)
 
-            # Extract data from response
             records = result.get(data_key, [])
             total = result.get(total_key, 0)
 
             if not records:
-                logger.info(f"No more records at offset {offset}")
+                logger.info("No more records at offset %s", offset)
                 break
 
             yield records
-            logger.info(f"Extracted {len(records)} records (total so far: {offset + len(records)}/{total})")
+            logger.info(
+                "Extracted %s records (total so far: %s/%s)",
+                len(records),
+                offset + len(records),
+                total,
+            )
 
             offset += len(records)
             page += 1
 
-            # Stop if we've reached the end
             if offset >= total:
                 break
 
@@ -134,11 +131,7 @@ class APIExtractor:
         data_key: str = "data",
         max_pages: Optional[int] = None,
     ) -> Generator[List[Dict], None, None]:
-        """
-        Extract data using cursor-based pagination.
-        
-        Yields batches of records from each page.
-        """
+        """Extract data using cursor-based pagination."""
         cursor = None
         page = 0
 
@@ -150,7 +143,7 @@ class APIExtractor:
             if cursor:
                 params[cursor_param] = cursor
 
-            logger.info(f"Fetching page {page + 1}: cursor={cursor}")
+            logger.info("Fetching page %s: cursor=%s", page + 1, cursor)
             result = self._make_request("GET", endpoint, params=params)
 
             records = result.get(data_key, [])
@@ -178,10 +171,7 @@ class APIExtractor:
         end_date_param: str = "end_date",
         page_size: int = 100,
     ) -> Generator[List[Dict], None, None]:
-        """
-        Extract data filtered by date range with pagination.
-        Useful for incremental loads.
-        """
+        """Extract data filtered by date range with pagination."""
         offset = 0
 
         while True:

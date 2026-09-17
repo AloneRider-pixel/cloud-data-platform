@@ -5,7 +5,7 @@ Handles writing transformed data to the analytical warehouse.
 import logging
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Optional
 
 import pandas as pd
 from sqlalchemy import create_engine, text
@@ -17,19 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class WarehouseLoader:
-    """
-    Loads data into PostgreSQL/Snowflake warehouse with:
-    - Schema-aware upserts
-    - Batch inserts for performance
-    - Idempotent writes (MERGE/ON CONFLICT)
-    - Watermark tracking
-    """
+    """Load data into PostgreSQL/Snowflake analytical warehouses."""
 
-    def __init__(
-        self,
-        database_url: str = None,
-        schema: str = "raw",
-    ):
+    def __init__(self, database_url: str = None, schema: str = "raw"):
         self.database_url = database_url or config.database_url
         self.schema = schema
         self.engine: Engine = create_engine(
@@ -38,23 +28,12 @@ class WarehouseLoader:
             max_overflow=10,
         )
 
-    def load_full_refresh(
-        self,
-        df: pd.DataFrame,
-        table_name: str,
-        schema: str = None,
-        if_exists: str = "replace",
-    ) -> int:
-        """
-        Full refresh load - replaces entire table.
-        Use for small datasets or when full rebuild is needed.
-        """
+    def load_full_refresh(self, df: pd.DataFrame, table_name: str, schema: str = None, if_exists: str = "replace") -> int:
+        """Full refresh load - replaces entire table."""
         target_schema = schema or self.schema
         row_count = len(df)
 
-        logger.info(
-            f"Full refresh: {target_schema}.{table_name} ({row_count} rows)"
-        )
+        logger.info("Full refresh: %s.%s (%s rows)", target_schema, table_name, row_count)
 
         df.to_sql(
             name=table_name,
@@ -66,31 +45,19 @@ class WarehouseLoader:
             method="multi",
         )
 
-        logger.info(f"Loaded {row_count} rows into {target_schema}.{table_name}")
+        logger.info("Loaded %s rows into %s.%s", row_count, target_schema, table_name)
         return row_count
 
-    def load_incremental(
-        self,
-        df: pd.DataFrame,
-        table_name: str,
-        primary_key: str,
-        schema: str = None,
-    ) -> int:
-        """
-        Incremental load using UPSERT (INSERT ... ON CONFLICT UPDATE).
-        Idempotent - safe to re-run with the same data.
-        """
+    def load_incremental(self, df: pd.DataFrame, table_name: str, primary_key: str, schema: str = None) -> int:
+        """Incremental upsert using INSERT ... ON CONFLICT UPDATE."""
         if df.empty:
             logger.info("No records to upsert")
             return 0
 
         target_schema = schema or self.schema
         full_table = f"{target_schema}.{table_name}"
-
-        # Ensure table exists with proper schema
         self._ensure_table_exists(df, table_name, target_schema)
 
-        # Build upsert SQL
         columns = list(df.columns)
         col_list = ", ".join(columns)
         placeholders = ", ".join([f":{col}" for col in columns])
@@ -101,11 +68,10 @@ class WarehouseLoader:
         upsert_sql = f"""
             INSERT INTO {full_table} ({col_list})
             VALUES ({placeholders})
-            ON CONFLICT ({primary_key}) 
+            ON CONFLICT ({primary_key})
             DO UPDATE SET {update_set}
         """
 
-        # Execute in batches
         total_rows = 0
         batch_size = 5000
 
@@ -118,32 +84,19 @@ class WarehouseLoader:
                 conn.commit()
 
             total_rows += len(batch)
-            logger.info(f"Upserted batch: {total_rows}/{len(df)} rows")
+            logger.info("Upserted batch: %s/%s rows", total_rows, len(df))
 
-        logger.info(
-            f"Incremental load complete: {total_rows} rows upserted "
-            f"into {full_table}"
-        )
+        logger.info("Incremental load complete: %s rows upserted into %s", total_rows, full_table)
         return total_rows
 
-    def load_scd_type2(
-        self,
-        df: pd.DataFrame,
-        table_name: str,
-        natural_key: str,
-        schema: str = None,
-    ) -> int:
-        """
-        Slowly Changing Dimension Type 2 load.
-        Tracks historical changes by creating new records with date ranges.
-        """
+    def load_scd_type2(self, df: pd.DataFrame, table_name: str, natural_key: str, schema: str = None) -> int:
+        """Slowly Changing Dimension Type 2 load."""
         target_schema = schema or self.schema
         full_table = f"{target_schema}.{table_name}"
 
         if df.empty:
             return 0
 
-        # Add SCD columns
         df = df.copy()
         df["_scd_valid_from"] = datetime.utcnow()
         df["_scd_valid_to"] = None
@@ -151,7 +104,6 @@ class WarehouseLoader:
         df["_surrogate_key"] = [uuid.uuid4().hex for _ in range(len(df))]
 
         with self.engine.connect() as conn:
-            # Expire current records that are changing
             natural_keys = df[natural_key].unique().tolist()
             expire_sql = f"""
                 UPDATE {full_table}
@@ -163,7 +115,6 @@ class WarehouseLoader:
             conn.execute(text(expire_sql), {"keys": natural_keys})
             conn.commit()
 
-        # Insert new versions
         df.to_sql(
             name=table_name,
             con=self.engine,
@@ -173,24 +124,15 @@ class WarehouseLoader:
             chunksize=5000,
         )
 
-        logger.info(
-            f"SCD Type 2 load: {len(df)} new versions into {full_table}"
-        )
+        logger.info("SCD Type 2 load: %s new versions into %s", len(df), full_table)
         return len(df)
 
-    def _ensure_table_exists(
-        self,
-        df: pd.DataFrame,
-        table_name: str,
-        schema: str,
-    ):
+    def _ensure_table_exists(self, df: pd.DataFrame, table_name: str, schema: str):
         """Create table if it doesn't exist."""
-        # Create schema if needed
         with self.engine.connect() as conn:
             conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
             conn.commit()
 
-        # Create empty table with proper types
         empty_df = df.head(0)
         empty_df.to_sql(
             name=table_name,
@@ -214,12 +156,7 @@ class WarehouseLoader:
             )
             return result.scalar()
 
-    def update_watermark(
-        self,
-        pipeline_name: str,
-        table_name: str,
-        watermark_value: str,
-    ):
+    def update_watermark(self, pipeline_name: str, table_name: str, watermark_value: str):
         """Update the pipeline watermark for tracking incremental loads."""
         with self.engine.connect() as conn:
             conn.execute(text("CREATE SCHEMA IF NOT EXISTS metadata"))
@@ -238,11 +175,7 @@ class WarehouseLoader:
             )
             conn.commit()
 
-    def get_watermark(
-        self,
-        pipeline_name: str,
-        table_name: str,
-    ) -> Optional[str]:
+    def get_watermark(self, pipeline_name: str, table_name: str) -> Optional[str]:
         """Get the last watermark value for a pipeline/table."""
         try:
             with self.engine.connect() as conn:

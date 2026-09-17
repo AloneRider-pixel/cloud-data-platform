@@ -3,7 +3,7 @@ Centralized configuration for the ingestion layer.
 Loads settings from environment variables with sensible defaults.
 """
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 
