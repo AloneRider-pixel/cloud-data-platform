@@ -1,6 +1,6 @@
 # Core
 pandas==2.1.4
-pyarrow==14.0.2
+pyarrow==25.0.1
 numpy==1.26.3
 
 # AWS S3
