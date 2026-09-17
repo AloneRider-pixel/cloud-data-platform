@@ -21,6 +21,8 @@ jobs:
   ingestion-tests:
     name: Ingestion lint and tests
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
     services:
       postgres:
         image: postgres:16
