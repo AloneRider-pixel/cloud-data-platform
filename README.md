@@ -1,6 +1,7 @@
 # 🏗️ Cloud Data Platform
 
 [![CI](https://github.com/AloneRider-pixel/cloud-data-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/AloneRider-pixel/cloud-data-platform/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/AloneRider-pixel/cloud-data-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/AloneRider-pixel/cloud-data-platform/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **End-to-end data engineering platform for batch and streaming ingestion, orchestration, transformation, data quality, and analytics.**
@@ -160,6 +161,12 @@ These values are **design targets**, not published benchmark results:
 | Data freshness SLA | `< 1 hour` |
 
 When publishing measured performance, pair the number with dataset size, environment, run count, and reproducible benchmark instructions.
+
+## Verification
+
+The recommended technical review path is documented in [Reviewer Guide](docs/reviewer-guide.md). The data-quality assumptions and replay/benchmark checklist are in [Data Quality Verification](docs/data-quality.md).
+
+CI currently verifies ingestion lint/tests, dbt parsing/compilation, Docker builds, and CodeQL analysis.
 
 ## Testing
 
