@@ -1,6 +1,6 @@
 streamlit==1.61.0
 pandas==3.0.5
-plotly==7.0.0
+plotly==7.1.0
 sqlalchemy==2.0.25
 psycopg2-binary==2.9.13
 python-dotenv==1.0.0
