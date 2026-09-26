@@ -180,6 +180,12 @@ The repository separates ingestion unit tests from broader integration tests and
 - Great Expectations integration alongside dbt checks.
 - Production-style alerting and observability examples.
 
+## Evidence and reproducibility
+
+Pipeline targets in this README are design targets, not measured production benchmarks. Any published runtime, throughput, freshness, quality, or reliability result should link to a reproducible dataset/workload, environment, command or workflow, sample size, and commit-produced artifact.
+
+See [Evidence Policy](docs/evidence-policy.md).
+
 ## License
 
 MIT
