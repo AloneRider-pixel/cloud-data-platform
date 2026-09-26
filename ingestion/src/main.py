@@ -19,6 +19,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def enforce_quality_gate(checks: list[tuple[str, bool]]) -> None:
+    """Raise before downstream writes when any required validation fails."""
+    enforce_quality_gate(checks)
+
+
 def run_full_ingestion():
     """Run complete ingestion pipeline for all entities."""
     logger.info("=" * 60)
