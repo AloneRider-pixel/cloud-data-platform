@@ -46,13 +46,16 @@ services:
     depends_on:
       minio:
         condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
     entrypoint: >
       /bin/sh -c "
-      mc alias set local http://minio:9000 minioadmin minioadmin;
+      mc alias set local http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD";
       mc mb local/raw-data-lake --ignore-existing;
       mc mb local/clean-data --ignore-existing;
       mc mb local/analytics-data --ignore-existing;
-      mc anonymous set download local/raw-data-lake;
+      mc anonymous set none local/raw-data-lake;
       echo 'Buckets created successfully';
       "
 

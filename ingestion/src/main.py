@@ -19,6 +19,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def enforce_quality_gate(checks: list[tuple[str, bool]]) -> None:
+    """Raise before downstream writes when any required validation fails."""
+    failed_checks = [name for name, passed in checks if not passed]
+    if failed_checks:
+        raise RuntimeError(
+            "Data quality gate failed; downstream writes were blocked: "
+            + ", ".join(failed_checks)
+        )
+
 def run_full_ingestion():
     """Run complete ingestion pipeline for all entities."""
     logger.info("=" * 60)
@@ -52,18 +61,28 @@ def run_full_ingestion():
     products_df = pd.DataFrame(all_products)
     customers_df = pd.DataFrame(all_customers)
 
-    # Quality checks
-    checker.check_row_count(orders_df, min_rows=1)
-    checker.check_row_count(products_df, min_rows=1)
-    checker.check_row_count(customers_df, min_rows=1)
+    # Quality checks are a hard gate: a failed validation must stop the pipeline
+    # before data is written downstream.
+    checks = [
+        ("orders row count", checker.check_row_count(orders_df, min_rows=1)),
+        ("products row count", checker.check_row_count(products_df, min_rows=1)),
+        ("customers row count", checker.check_row_count(customers_df, min_rows=1)),
+    ]
 
     if "order_id" in orders_df.columns:
-        checker.check_unique(orders_df, ["order_id"])
+        checks.append(("orders primary-key uniqueness", checker.check_unique(orders_df, ["order_id"])))
     if "product_id" in products_df.columns:
-        checker.check_unique(products_df, ["product_id"])
+        checks.append(("products primary-key uniqueness", checker.check_unique(products_df, ["product_id"])))
 
     summary = checker.get_summary()
-    logger.info("  Quality: %s/%s checks passed", summary["passed"], summary["total_checks"])
+    logger.info("  Quality gate: %s/%s checks passed", summary["passed"], summary["total_checks"])
+
+    failed_checks = [name for name, passed in checks if not passed]
+    if failed_checks:
+        raise RuntimeError(
+            "Data quality gate failed; downstream writes were blocked: "
+            + ", ".join(failed_checks)
+        )
 
     # ─── Load to S3 ───
     logger.info("\n📦 Loading to S3 (Raw Layer)...")
