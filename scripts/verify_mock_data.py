@@ -5,12 +5,14 @@ import hashlib
 import importlib
 import json
 import random
+import sys
 
 SEED = 20260927
 
 
 def snapshot() -> tuple[str, dict[str, int]]:
     random.seed(SEED)
+    sys.modules.pop("scripts.generate_mock_data", None)
     module = importlib.import_module("scripts.generate_mock_data")
     payload = json.dumps(module.DATA_STORE, sort_keys=True, default=str).encode("utf-8")
     digest = hashlib.sha256(payload).hexdigest()
