@@ -4,7 +4,6 @@ Loads settings from environment variables with sensible defaults.
 """
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -32,7 +31,7 @@ class Config:
     aws_secret_key: str = os.getenv("AWS_SECRET_ACCESS_KEY", "minioadmin")
     aws_region: str = os.getenv("AWS_REGION", "us-east-1")
     s3_bucket: str = os.getenv("S3_BUCKET", "raw-data-lake")
-    s3_endpoint: Optional[str] = os.getenv("S3_ENDPOINT")
+    s3_endpoint: str | None = os.getenv("S3_ENDPOINT")
 
     # Mock API
     mock_api_base_url: str = os.getenv("MOCK_API_BASE_URL", "http://localhost:8001")
