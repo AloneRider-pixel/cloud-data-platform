@@ -6,7 +6,8 @@ Supports batch processing with checkpointing for exactly-once semantics.
 import logging
 import time
 from datetime import datetime
-from typing import Any, Dict, Generator, List, Optional
+from collections.abc import Generator
+from typing import Any
 
 import pandas as pd
 
@@ -16,13 +17,13 @@ logger = logging.getLogger(__name__)
 class EventExtractor:
     """Extract events with batching and checkpointing."""
 
-    def __init__(self, batch_size: int = 1000, max_wait_seconds: int = 60, checkpoint_store: Optional[Any] = None):
+    def __init__(self, batch_size: int = 1000, max_wait_seconds: int = 60, checkpoint_store: Any | None = None):
         self.batch_size = batch_size
         self.max_wait_seconds = max_wait_seconds
         self.checkpoint_store = checkpoint_store
         self._current_offset = 0
 
-    def extract_from_queue(self, queue_name: str, max_messages: int = None) -> Generator[List[Dict], None, None]:
+    def extract_from_queue(self, queue_name: str, max_messages: int | None = None) -> Generator[list[dict], None, None]:
         """Extract events from a simulated message queue."""
         max_messages = max_messages or self.batch_size
         batch = []
@@ -47,7 +48,7 @@ class EventExtractor:
         if batch:
             yield batch
 
-    def extract_with_checkpoint(self, source_name: str, checkpoint_key: str = "default") -> Generator[List[Dict], None, None]:
+    def extract_with_checkpoint(self, source_name: str, checkpoint_key: str = "default") -> Generator[list[dict], None, None]:
         """Extract events with checkpoint-based tracking."""
         last_checkpoint = self._get_checkpoint(source_name, checkpoint_key)
         logger.info("Resuming from checkpoint: %s/%s at offset %s", source_name, checkpoint_key, last_checkpoint)
@@ -61,7 +62,7 @@ class EventExtractor:
 
         logger.info("Processed %s batches from %s", batch_count, source_name)
 
-    def _generate_simulated_events(self, queue_name: str, count: int) -> List[Dict]:
+    def _generate_simulated_events(self, queue_name: str, count: int) -> list[dict]:
         """Generate simulated events for testing."""
         import random
 
@@ -108,7 +109,7 @@ class EventExtractor:
         if self.checkpoint_store:
             self.checkpoint_store.set(f"checkpoint:{source}:{key}", offset)
 
-    def events_to_dataframe(self, events: List[Dict]) -> pd.DataFrame:
+    def events_to_dataframe(self, events: list[dict]) -> pd.DataFrame:
         """Convert a list of events to a pandas DataFrame."""
         if not events:
             return pd.DataFrame()
