@@ -6,6 +6,8 @@ import logging
 
 import pandas as pd
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from src.config import config
 from src.extractors.api_extractor import APIExtractor
 from src.loaders.s3_loader import S3Loader
@@ -106,7 +108,7 @@ def run_full_ingestion():
             if not df.empty:
                 rows = wh_loader.load_full_refresh(df=df, table_name=entity, schema="raw")
                 logger.info("  %s: %s rows loaded to raw.%s", entity, rows, entity)
-    except Exception as exc:
+    except SQLAlchemyError as exc:
         logger.warning("  Warehouse load skipped (not available): %s", exc)
 
     logger.info("\n" + "=" * 60)
