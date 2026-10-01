@@ -4,12 +4,12 @@ Handles writing transformed data to the analytical warehouse.
 """
 import logging
 import uuid
-from datetime import datetime
-from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime, timezone
 
 import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.config import config
 
@@ -98,7 +98,7 @@ class WarehouseLoader:
             return 0
 
         df = df.copy()
-        df["_scd_valid_from"] = datetime.utcnow()
+        df["_scd_valid_from"] = datetime.now(timezone.utc).replace(tzinfo=None)
         df["_scd_valid_to"] = None
         df["_scd_is_current"] = True
         df["_surrogate_key"] = [uuid.uuid4().hex for _ in range(len(df))]
