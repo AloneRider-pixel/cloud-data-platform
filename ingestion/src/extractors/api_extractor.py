@@ -5,7 +5,7 @@ Handles paginated API ingestion with rate limiting, retries, and backoff.
 import logging
 import time
 from datetime import datetime
-from typing import Dict, Generator, List, Optional
+from collections.abc import Generator
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -26,10 +26,10 @@ class APIExtractor:
 
     def __init__(
         self,
-        base_url: str = None,
-        api_key: str = None,
+        base_url: str | None = None,
+        api_key: str | None = None,
         rate_limit_per_second: float = 10.0,
-        max_retries: int = None,
+        max_retries: int | None = None,
     ):
         self.base_url = base_url or config.mock_api_base_url
         self.api_key = api_key or config.mock_api_key
@@ -53,9 +53,9 @@ class APIExtractor:
         self,
         method: str,
         endpoint: str,
-        params: Optional[Dict] = None,
-        json_body: Optional[Dict] = None,
-    ) -> Dict:
+        params: dict | None = None,
+        json_body: dict | None = None,
+    ) -> dict:
         """Make an HTTP request with rate limiting and retries."""
         elapsed = time.time() - self._last_request_time
         min_interval = 1.0 / self.rate_limit_per_second
@@ -83,8 +83,8 @@ class APIExtractor:
         limit_param: str = "limit",
         data_key: str = "data",
         total_key: str = "total",
-        max_pages: Optional[int] = None,
-    ) -> Generator[List[Dict], None, None]:
+        max_pages: int | None = None,
+    ) -> Generator[list[dict], None, None]:
         """Extract data using offset-based pagination."""
         offset = 0
         page = 0
@@ -129,8 +129,8 @@ class APIExtractor:
         cursor_param: str = "cursor",
         cursor_key: str = "next_cursor",
         data_key: str = "data",
-        max_pages: Optional[int] = None,
-    ) -> Generator[List[Dict], None, None]:
+        max_pages: int | None = None,
+    ) -> Generator[list[dict], None, None]:
         """Extract data using cursor-based pagination."""
         cursor = None
         page = 0
@@ -158,7 +158,7 @@ class APIExtractor:
             if not cursor:
                 break
 
-    def extract_single(self, endpoint: str, params: Optional[Dict] = None) -> Dict:
+    def extract_single(self, endpoint: str, params: dict | None = None) -> dict:
         """Extract a single resource."""
         return self._make_request("GET", endpoint, params=params)
 
@@ -170,7 +170,7 @@ class APIExtractor:
         date_param: str = "start_date",
         end_date_param: str = "end_date",
         page_size: int = 100,
-    ) -> Generator[List[Dict], None, None]:
+    ) -> Generator[list[dict], None, None]:
         """Extract data filtered by date range with pagination."""
         offset = 0
 
