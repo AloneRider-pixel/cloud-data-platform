@@ -5,8 +5,8 @@ Supports batch processing with checkpointing for exactly-once semantics.
 """
 import logging
 import time
-from datetime import datetime
 from collections.abc import Generator
+from datetime import datetime, timezone
 from typing import Any
 
 import pandas as pd
@@ -72,7 +72,7 @@ class EventExtractor:
         ]
 
         events = []
-        base_time = datetime.utcnow()
+        base_time = datetime.now(timezone.utc)
 
         for i in range(count):
             events.append({
