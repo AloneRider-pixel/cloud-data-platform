@@ -106,7 +106,7 @@ class S3Loader:
         
         # Add custom metadata
         custom_metadata = {
-            "ingestion_timestamp": datetime.utcnow().isoformat(),
+            "ingestion_timestamp": datetime.now(timezone.utc).isoformat(),
             "row_count": str(len(df)),
             "source": prefix,
         }
@@ -163,7 +163,7 @@ class S3Loader:
             max_ts = pd.to_datetime(df[watermark_column]).max()
             filename = f"incremental_{min_ts.strftime('%Y%m%d_%H%M%S')}_{max_ts.strftime('%Y%m%d_%H%M%S')}.parquet"
         else:
-            filename = f"incremental_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.parquet"
+            filename = f"incremental_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.parquet"
 
         return self.load_dataframe(
             df=df,
