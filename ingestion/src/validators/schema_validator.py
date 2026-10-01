@@ -4,7 +4,7 @@ Schema validation, data quality checks, and anomaly detection.
 """
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import pandas as pd
 
@@ -17,9 +17,9 @@ class SchemaValidator:
     def validate(
         self,
         df: pd.DataFrame,
-        expected_schema: Dict[str, str],
-        required_columns: Optional[List[str]] = None,
-    ) -> Tuple[bool, List[str]]:
+        expected_schema: dict[str, str],
+        required_columns: list[str] | None = None,
+    ) -> tuple[bool, list[str]]:
         """
         Validate DataFrame against expected schema.
         
@@ -79,7 +79,7 @@ class DataQualityChecker:
     def check_not_null(
         self,
         df: pd.DataFrame,
-        columns: List[str],
+        columns: list[str],
     ) -> bool:
         """Check that specified columns have no null values."""
         null_counts = df[columns].isnull().sum()
@@ -100,7 +100,7 @@ class DataQualityChecker:
     def check_unique(
         self,
         df: pd.DataFrame,
-        columns: List[str],
+        columns: list[str],
     ) -> bool:
         """Check that specified columns have unique values."""
         passed = True
@@ -127,7 +127,7 @@ class DataQualityChecker:
         self,
         df: pd.DataFrame,
         column: str,
-        accepted_values: List[Any],
+        accepted_values: list[Any],
     ) -> bool:
         """Check that a column only contains accepted values."""
         actual_values = set(df[column].unique())
@@ -153,8 +153,8 @@ class DataQualityChecker:
         self,
         df: pd.DataFrame,
         column: str,
-        min_value: Optional[float] = None,
-        max_value: Optional[float] = None,
+        min_value: float | None = None,
+        max_value: float | None = None,
     ) -> bool:
         """Check that numeric column values are within range."""
         col_data = pd.to_numeric(df[column], errors="coerce")
@@ -189,7 +189,7 @@ class DataQualityChecker:
         self,
         df: pd.DataFrame,
         min_rows: int = 0,
-        max_rows: Optional[int] = None,
+        max_rows: int | None = None,
     ) -> bool:
         """Check that row count is within expected bounds."""
         row_count = len(df)
@@ -236,7 +236,7 @@ class DataQualityChecker:
             )
         return passed
 
-    def get_summary(self) -> Dict:
+    def get_summary(self) -> dict:
         """Get summary of all quality checks."""
         total = len(self.results)
         passed = sum(1 for r in self.results if r["passed"])
