@@ -6,7 +6,7 @@ and incremental processing.
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Generator, List, Optional
+from collections.abc import Generator
 
 import pandas as pd
 
@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 class CSVExtractor:
     """Extracts data from CSV files with chunking and validation."""
 
-    def __init__(self, chunk_size: int = 10000, encoding: str = "utf-8", date_column: Optional[str] = None):
+    def __init__(self, chunk_size: int = 10000, encoding: str = "utf-8", date_column: str | None = None):
         self.chunk_size = chunk_size
         self.encoding = encoding
         self.date_column = date_column
 
-    def extract_file(self, file_path: str, expected_columns: Optional[List[str]] = None) -> Generator[pd.DataFrame, None, None]:
+    def extract_file(self, file_path: str, expected_columns: list[str] | None = None) -> Generator[pd.DataFrame, None, None]:
         """Extract data from a CSV file in chunks."""
         path = Path(file_path)
         if not path.exists():
@@ -46,7 +46,7 @@ class CSVExtractor:
             logger.info("Chunk %s: %s rows from %s", chunk_num, len(chunk), path.name)
             yield chunk
 
-    def extract_directory(self, directory: str, pattern: str = "*.csv", expected_columns: Optional[List[str]] = None) -> Generator[Dict, None, None]:
+    def extract_directory(self, directory: str, pattern: str = "*.csv", expected_columns: list[str] | None = None) -> Generator[dict, None, None]:
         """Extract all CSV files matching pattern from a directory."""
         path = Path(directory)
         files = sorted(path.glob(pattern))
@@ -60,7 +60,7 @@ class CSVExtractor:
                 "data": self.extract_file(str(file_path), expected_columns),
             }
 
-    def _validate_schema(self, df: pd.DataFrame, expected_columns: List[str], file_path: str):
+    def _validate_schema(self, df: pd.DataFrame, expected_columns: list[str], file_path: str):
         """Validate DataFrame columns match expected schema."""
         actual_columns = set(df.columns)
         expected_set = set(expected_columns)
