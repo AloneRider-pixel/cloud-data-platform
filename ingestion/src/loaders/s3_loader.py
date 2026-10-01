@@ -5,7 +5,7 @@ Handles writing data to S3/MinIO in Parquet format with partitioning.
 import io
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 import boto3
 import pandas as pd
@@ -85,7 +85,7 @@ class S3Loader:
                 f"day={date_val.day:02d}/"
             )
         else:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             partition_path = (
                 f"year={now.year}/"
                 f"month={now.month:02d}/"
