@@ -4,9 +4,8 @@ Orchestrates data extraction from all sources and loading to S3/warehouse.
 """
 import logging
 
-import pandas as pd
-
 from sqlalchemy.exc import SQLAlchemyError
+import pandas as pd
 
 from src.config import config
 from src.extractors.api_extractor import APIExtractor
