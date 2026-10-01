@@ -5,7 +5,7 @@ Handles writing transformed data to the analytical warehouse.
 import logging
 import uuid
 from datetime import datetime
-from typing import Optional
+from sqlalchemy.exc import SQLAlchemyError
 
 import pandas as pd
 from sqlalchemy import create_engine, text
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class WarehouseLoader:
     """Load data into PostgreSQL/Snowflake analytical warehouses."""
 
-    def __init__(self, database_url: str = None, schema: str = "raw"):
+    def __init__(self, database_url: str | None = None, schema: str = "raw"):
         self.database_url = database_url or config.database_url
         self.schema = schema
         self.engine: Engine = create_engine(
@@ -28,7 +28,7 @@ class WarehouseLoader:
             max_overflow=10,
         )
 
-    def load_full_refresh(self, df: pd.DataFrame, table_name: str, schema: str = None, if_exists: str = "replace") -> int:
+    def load_full_refresh(self, df: pd.DataFrame, table_name: str, schema: str | None = None, if_exists: str = "replace") -> int:
         """Full refresh load - replaces entire table."""
         target_schema = schema or self.schema
         row_count = len(df)
@@ -48,7 +48,7 @@ class WarehouseLoader:
         logger.info("Loaded %s rows into %s.%s", row_count, target_schema, table_name)
         return row_count
 
-    def load_incremental(self, df: pd.DataFrame, table_name: str, primary_key: str, schema: str = None) -> int:
+    def load_incremental(self, df: pd.DataFrame, table_name: str, primary_key: str, schema: str | None = None) -> int:
         """Incremental upsert using INSERT ... ON CONFLICT UPDATE."""
         if df.empty:
             logger.info("No records to upsert")
@@ -89,7 +89,7 @@ class WarehouseLoader:
         logger.info("Incremental load complete: %s rows upserted into %s", total_rows, full_table)
         return total_rows
 
-    def load_scd_type2(self, df: pd.DataFrame, table_name: str, natural_key: str, schema: str = None) -> int:
+    def load_scd_type2(self, df: pd.DataFrame, table_name: str, natural_key: str, schema: str | None = None) -> int:
         """Slowly Changing Dimension Type 2 load."""
         target_schema = schema or self.schema
         full_table = f"{target_schema}.{table_name}"
@@ -175,7 +175,7 @@ class WarehouseLoader:
             )
             conn.commit()
 
-    def get_watermark(self, pipeline_name: str, table_name: str) -> Optional[str]:
+    def get_watermark(self, pipeline_name: str, table_name: str) -> str | None:
         """Get the last watermark value for a pipeline/table."""
         try:
             with self.engine.connect() as conn:
@@ -188,5 +188,5 @@ class WarehouseLoader:
                 )
                 row = result.fetchone()
                 return row[0] if row else None
-        except Exception:
+        except SQLAlchemyError:
             return None
