@@ -13,12 +13,17 @@
 ```mermaid
 graph LR
     SRC[REST APIs / CSV / Event Streams]
-    ING[Python Ingestion\nExtract + Validate]
-    RAW[AWS S3 / MinIO\nRaw Parquet]
-    AIR[Apache Airflow\nOrchestration]
-    DBT[dbt Core\nTransform + Test]
+    ING[Python Ingestion
+Extract + Validate]
+    RAW[AWS S3 / MinIO
+Raw Parquet]
+    AIR[Apache Airflow
+Orchestration]
+    DBT[dbt Core
+Transform + Test]
     WH[(PostgreSQL / Snowflake)]
-    BI[Streamlit / Metabase\nAnalytics]
+    BI[Streamlit / Metabase
+Analytics]
 
     SRC --> ING --> RAW --> AIR --> DBT --> WH --> BI
 ```
@@ -189,3 +194,11 @@ See [Evidence Policy](docs/evidence-policy.md).
 ## License
 
 MIT
+
+## Repository review path
+
+Use [architecture](docs/architecture.md), [data quality](docs/data-quality.md), [verification](docs/verification.md), and [reviewer guide](docs/reviewer-guide.md) as the review entry points. The fastest local path is deterministic ingestion tests plus dbt parse/compile; CI is the authoritative repository-level validation path.
+
+## Maintenance standard
+
+Keep ingestion idempotent, schema validation explicit, warehouse changes reviewable, and cloud credentials outside source control. Treat runtime and throughput numbers as measurements only when reproducible evidence is available.
