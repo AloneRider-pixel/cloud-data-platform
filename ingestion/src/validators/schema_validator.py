@@ -3,7 +3,7 @@ Data Validation Framework.
 Schema validation, data quality checks, and anomaly detection.
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import pandas as pd
@@ -248,5 +248,5 @@ class DataQualityChecker:
             "failed": failed,
             "pass_rate": passed / total if total > 0 else 1.0,
             "results": self.results,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
