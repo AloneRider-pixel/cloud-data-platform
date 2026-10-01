@@ -6,7 +6,6 @@ import io
 import logging
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional
 
 import boto3
 import pandas as pd
@@ -30,10 +29,10 @@ class S3Loader:
 
     def __init__(
         self,
-        bucket: str = None,
-        endpoint_url: str = None,
-        aws_access_key: str = None,
-        aws_secret_key: str = None,
+        bucket: str | None = None,
+        endpoint_url: str | None = None,
+        aws_access_key: str | None = None,
+        aws_secret_key: str | None = None,
     ):
         self.bucket = bucket or config.s3_bucket
         
@@ -54,10 +53,10 @@ class S3Loader:
         self,
         df: pd.DataFrame,
         prefix: str,
-        partition_column: Optional[str] = None,
-        filename: Optional[str] = None,
+        partition_column: str | None = None,
+        filename: str | None = None,
         compression: str = "snappy",
-        metadata: Optional[Dict] = None,
+        metadata: dict | None = None,
     ) -> str:
         """
         Load a DataFrame to S3 as Parquet.
@@ -148,7 +147,7 @@ class S3Loader:
         df: pd.DataFrame,
         prefix: str,
         watermark_column: str,
-        partition_column: Optional[str] = None,
+        partition_column: str | None = None,
     ) -> str:
         """
         Load incremental data to S3.
@@ -174,7 +173,7 @@ class S3Loader:
             metadata={"load_type": "incremental"},
         )
 
-    def list_files(self, prefix: str, max_keys: int = 100) -> List[Dict]:
+    def list_files(self, prefix: str, max_keys: int = 100) -> list[dict]:
         """List files in an S3 prefix."""
         response = self.client.list_objects_v2(
             Bucket=self.bucket,
