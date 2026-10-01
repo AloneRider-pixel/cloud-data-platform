@@ -4,9 +4,9 @@ Handles batch ingestion of CSV files with schema validation
 and incremental processing.
 """
 import logging
-from datetime import datetime
-from pathlib import Path
 from collections.abc import Generator
+from datetime import datetime, timezone
+from pathlib import Path
 
 import pandas as pd
 
@@ -41,7 +41,7 @@ class CSVExtractor:
                 self._validate_schema(chunk, expected_columns, file_path)
 
             chunk["_source_file"] = path.name
-            chunk["_ingestion_timestamp"] = datetime.utcnow().isoformat()
+            chunk["_ingestion_timestamp"] = datetime.now(timezone.utc).isoformat()
             chunk["_chunk_number"] = chunk_num
             logger.info("Chunk %s: %s rows from %s", chunk_num, len(chunk), path.name)
             yield chunk
@@ -56,7 +56,7 @@ class CSVExtractor:
                 "file_path": str(file_path),
                 "file_name": file_path.name,
                 "file_size": file_path.stat().st_size,
-                "modified": datetime.fromtimestamp(file_path.stat().st_mtime),
+                "modified": datetime.fromtimestamp(file_path.stat().st_mtime, tz=timezone.utc),
                 "data": self.extract_file(str(file_path), expected_columns),
             }
 
@@ -82,7 +82,7 @@ class CSVExtractor:
         logger.info("Incremental extraction: %s new records (watermark: %s)", len(incremental_df), last_watermark)
         return incremental_df
 
-    def get_file_metadata(self, file_path: str) -> Dict:
+    def get_file_metadata(self, file_path: str) -> dict:
         """Get metadata about a CSV file."""
         path = Path(file_path)
         sample = pd.read_csv(file_path, nrows=5)
@@ -96,5 +96,5 @@ class CSVExtractor:
             "row_count_estimate": row_count,
             "columns": list(sample.columns),
             "column_types": {col: str(dtype) for col, dtype in sample.dtypes.items()},
-            "modified": datetime.fromtimestamp(path.stat().st_mtime).isoformat(),
+            "modified": datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat(),
         }
