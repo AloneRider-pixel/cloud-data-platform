@@ -4,8 +4,8 @@ Handles paginated API ingestion with rate limiting, retries, and backoff.
 """
 import logging
 import time
-from datetime import datetime
 from collections.abc import Generator
+from datetime import datetime
 
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
