@@ -1,19 +1,10 @@
-# 🏗️ Cloud Data Platform
+# Cloud Data Platform
 
 [![CI](https://github.com/AloneRider-pixel/cloud-data-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/AloneRider-pixel/cloud-data-platform/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/AloneRider-pixel/cloud-data-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/AloneRider-pixel/cloud-data-platform/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-End-to-end data engineering platform for ingestion, orchestration, transformation, data quality, and analytics.
-
-## What it demonstrates
-
-- Paginated API, CSV, and event-style ingestion with validation, retries, and rate limiting.
-- Incremental and idempotent loading patterns.
-- Apache Airflow orchestration with scheduled batch and incremental pipelines.
-- dbt transformation and data-quality checks.
-- Bronze → Silver → Gold warehouse modeling.
-- Dockerized local infrastructure and CI validation.
+End-to-end data-engineering reference platform for ingestion, orchestration, transformation, validation, warehouse modeling, and analytics.
 
 ## Architecture
 
@@ -25,15 +16,18 @@ graph LR
     AIR --> DBT[dbt]
     DBT --> WH[(PostgreSQL / Snowflake)]
     WH --> BI[Dashboard]
+    ING --> Q[Quality Gates]
 ```
 
-## Data layers
+## Engineering capabilities
 
-| Layer | Purpose |
-|---|---|
-| Bronze / Raw | Source-aligned data with auditability |
-| Silver / Clean | Validation, deduplication, normalization |
-| Gold / Analytics | Business-ready models and KPIs |
+- Paginated API, CSV, and event ingestion with validation and replay-safe loading.
+- Incremental and idempotent processing.
+- Airflow batch and incremental orchestration.
+- dbt transformations and warehouse modeling.
+- Bronze → Silver → Gold data layers.
+- Schema, freshness, reconciliation, and quality checks.
+- Dockerized local infrastructure plus CI, CodeQL, dependency review, and Scorecard.
 
 ## Stack
 
@@ -42,12 +36,12 @@ graph LR
 | Ingestion | Python 3.11, Requests, Pandas, PyArrow |
 | Orchestration | Apache Airflow |
 | Transformation | dbt Core |
-| Storage | AWS S3 / MinIO |
+| Object storage | AWS S3 / MinIO |
 | Warehouse | PostgreSQL / Snowflake |
 | Quality | Pytest, dbt tests, SQL assertions |
 | Delivery | Docker, GitHub Actions |
 
-## Repository layout
+## Repository map
 
 ```text
 ingestion/
@@ -57,8 +51,6 @@ ingestion/
   tests/
 airflow/dags/
 dbt/
-  dbt_project.yml
-  macros/
 warehouse/schemas/
 dashboard/
 scripts/
@@ -77,11 +69,9 @@ cp .env.example .env
 docker compose up -d
 ```
 
-For real S3 usage, provide the required AWS credentials. MinIO is the local S3-compatible path.
+Use MinIO for a local S3-compatible workflow. Provide real AWS credentials only when connecting to AWS.
 
 ## Verification
-
-CI validates ingestion and dbt paths. Core local checks:
 
 ```bash
 cd ingestion
@@ -93,28 +83,30 @@ dbt parse --profiles-dir .
 dbt compile --profiles-dir .
 ```
 
-## Data-quality discipline
+## Data-quality contract
 
-The pipeline is designed around schema validation, row-count reconciliation, freshness checks, and replay-safe loading. Performance values in this README are design targets unless accompanied by reproducible evidence.
+A successful pipeline run means the configured validation gates passed. Preserve schema validation, row-count reconciliation, freshness controls, and idempotency when extending ingestion or transformation behavior.
 
-## Evidence and reproducibility
+## Security
 
-Any published runtime, throughput, freshness, or quality result should include dataset/workload, environment, tooling, sample/run count, command, and producing commit. See [Evidence Policy](docs/evidence-policy.md).
+Keep cloud credentials outside source control. Review IAM scope, object-store permissions, database credentials, and data-ingestion boundaries together. CI uses immutable action references and least-privilege workflow permissions.
+
+## Evidence policy
+
+Runtime, throughput, freshness, quality, and cost claims require a named workload/dataset, environment, measurement method, sample/run count, and producing commit. Synthetic fixtures are not production benchmarks.
+
+See [docs/evidence-policy.md](docs/evidence-policy.md).
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [Data quality](docs/data-quality.md)
+- [Verification](docs/verification.md)
+- [Reviewer guide](docs/reviewer-guide.md)
 
 ## Roadmap
 
-- Managed-cloud deployment examples with least-privilege IAM.
-- Richer lineage visualization.
-- Snowflake performance benchmarks with reproducible workloads.
-- Extended data-quality integrations.
-
-## Review path
-
-Read [architecture](docs/architecture.md), [data quality](docs/data-quality.md), [verification](docs/verification.md), and [reviewer guide](docs/reviewer-guide.md) before changing ingestion, warehouse contracts, or quality gates.
-
-## Maintenance standard
-
-Keep ingestion idempotent, schemas explicit, credentials out of source control, and data-quality failures visible.
+Lineage visualization, managed-cloud examples, reproducible Snowflake benchmarks, and broader data-quality integrations.
 
 ## License
 
