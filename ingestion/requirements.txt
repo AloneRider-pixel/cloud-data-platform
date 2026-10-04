@@ -28,5 +28,5 @@ pydantic-settings==2.15.0
 # Testing
 pytest==9.1.1
 pytest-cov==7.1.0
-moto[s3]==5.0.0
+moto[s3]==5.2.3
 responses==0.26.3
