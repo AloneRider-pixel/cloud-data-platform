@@ -6,6 +6,16 @@
 
 End-to-end data-engineering reference platform for ingestion, orchestration, transformation, validation, warehouse modeling, and analytics.
 
+## What it demonstrates
+
+- Paginated API, CSV, and event ingestion with validation and replay-safe loading.
+- Incremental and idempotent processing.
+- Airflow orchestration for batch and incremental workloads.
+- dbt transformations and warehouse modeling.
+- Bronze → Silver → Gold data layers.
+- Schema, freshness, reconciliation, and data-quality gates.
+- Dockerized local infrastructure plus CI, CodeQL, dependency review, and Scorecard.
+
 ## Architecture
 
 ```mermaid
@@ -18,16 +28,6 @@ graph LR
     WH --> BI[Dashboard]
     ING --> Q[Quality Gates]
 ```
-
-## Engineering capabilities
-
-- Paginated API, CSV, and event ingestion with validation and replay-safe loading.
-- Incremental and idempotent processing.
-- Airflow batch and incremental orchestration.
-- dbt transformations and warehouse modeling.
-- Bronze → Silver → Gold data layers.
-- Schema, freshness, reconciliation, and quality checks.
-- Dockerized local infrastructure plus CI, CodeQL, dependency review, and Scorecard.
 
 ## Stack
 
@@ -83,13 +83,19 @@ dbt parse --profiles-dir .
 dbt compile --profiles-dir .
 ```
 
+CI also validates container builds, ingestion tests, dbt validation, CodeQL, dependency review, and Scorecard.
+
 ## Data-quality contract
 
 A successful pipeline run means the configured validation gates passed. Preserve schema validation, row-count reconciliation, freshness controls, and idempotency when extending ingestion or transformation behavior.
 
+## Reliability notes
+
+Eventual consistency, partial ingestion, replay, and duplicate delivery are treated as normal failure modes. New loaders should make their write path replay-safe and observable rather than assuming one successful execution.
+
 ## Security
 
-Keep cloud credentials outside source control. Review IAM scope, object-store permissions, database credentials, and data-ingestion boundaries together. CI uses immutable action references and least-privilege workflow permissions.
+Keep cloud credentials outside source control. Review IAM scope, object-store permissions, database credentials, and ingestion boundaries together. CI uses immutable action references and least-privilege workflow permissions.
 
 ## Evidence policy
 
@@ -103,6 +109,10 @@ See [docs/evidence-policy.md](docs/evidence-policy.md).
 - [Data quality](docs/data-quality.md)
 - [Verification](docs/verification.md)
 - [Reviewer guide](docs/reviewer-guide.md)
+
+## Contribution standard
+
+Preserve data contracts and quality gates when changing ingestion schemas, orchestration, or warehouse models. Add regression coverage for idempotency and reconciliation behavior.
 
 ## Roadmap
 
