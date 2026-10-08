@@ -1,7 +1,7 @@
 # Core
 pandas==3.0.6
 pyarrow==25.0.1
-numpy==1.26.3
+numpy==2.5.3
 
 # AWS S3
 boto3==1.43.103
