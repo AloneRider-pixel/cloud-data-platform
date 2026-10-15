@@ -24,7 +24,7 @@ graph LR
     ING --> RAW[S3 / MinIO]
     RAW --> AIR[Airflow]
     AIR --> DBT[dbt]
-    DBT --> WH[(PostgreSQL / Snowflake)]
+    DBT --> WH[(PostgreSQL)]
     WH --> BI[Dashboard]
     ING --> Q[Quality Gates]
 ```
@@ -37,7 +37,7 @@ graph LR
 | Orchestration | Apache Airflow |
 | Transformation | dbt Core |
 | Object storage | AWS S3 / MinIO |
-| Warehouse | PostgreSQL / Snowflake |
+| Warehouse | PostgreSQL |
 | Quality | Pytest, dbt tests, SQL assertions |
 | Delivery | Docker, GitHub Actions |
 
@@ -116,7 +116,7 @@ Preserve data contracts and quality gates when changing ingestion schemas, orche
 
 ## Roadmap
 
-Lineage visualization, managed-cloud examples, reproducible Snowflake benchmarks, and broader data-quality integrations.
+Lineage visualization, managed-cloud examples, a Snowflake adapter and reproducible benchmarks, and broader data-quality integrations.
 
 ## License
 
