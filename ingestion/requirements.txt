@@ -4,7 +4,7 @@ pyarrow==25.0.1
 numpy==2.5.4
 
 # AWS S3
-boto3==1.43.108
+boto3==1.43.113
 
 # HTTP / API
 requests==2.34.2
