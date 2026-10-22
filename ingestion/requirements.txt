@@ -23,7 +23,7 @@ python-dotenv==1.2.4
 tenacity==9.2.1
 structlog==26.1.0
 pydantic==2.14.1
-pydantic-settings==2.15.0
+pydantic-settings==2.16.0
 
 # Testing
 pytest==9.1.1
