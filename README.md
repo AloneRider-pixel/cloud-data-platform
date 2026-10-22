@@ -11,8 +11,7 @@ End-to-end data-engineering reference platform for ingestion, orchestration, tra
 - Paginated API, CSV, and event ingestion with validation and replay-safe loading.
 - Incremental and idempotent processing.
 - Airflow orchestration for batch and incremental workloads.
-- dbt transformations and warehouse modeling.
-- Bronze → Silver → Gold data layers.
+- Airflow-orchestrated data-quality checks and PostgreSQL warehouse schemas.
 - Schema, freshness, reconciliation, and data-quality gates.
 - Dockerized local infrastructure plus CI, CodeQL, dependency review, and Scorecard.
 
@@ -38,7 +37,7 @@ graph LR
 | Transformation | dbt Core |
 | Object storage | AWS S3 / MinIO |
 | Warehouse | PostgreSQL |
-| Quality | Pytest, dbt tests, SQL assertions |
+| Quality | Pytest, Airflow data-quality DAG |
 | Delivery | Docker, GitHub Actions |
 
 ## Repository map
