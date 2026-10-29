@@ -1,17 +1,17 @@
 # Core
-pandas==3.0.6
+pandas==3.1.0
 pyarrow==26.0.0
 numpy==2.5.4
 
 # AWS S3
-boto3==1.43.115
+boto3==1.43.118
 
 # HTTP / API
 requests==2.34.2
 httpx==0.28.1
 
 # Database
-sqlalchemy==2.1.5
+sqlalchemy==2.1.6
 psycopg2-binary==2.9.13
 
 # Validation
@@ -23,7 +23,7 @@ python-dotenv==1.2.4
 tenacity==9.2.1
 structlog==26.1.0
 pydantic==2.14.1
-pydantic-settings==2.16.0
+pydantic-settings==2.16.1
 
 # Testing
 pytest==9.1.1
