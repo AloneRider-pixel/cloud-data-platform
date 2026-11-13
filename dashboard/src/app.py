@@ -66,19 +66,19 @@ def load_pipeline_metrics():
 
 
 # ─── Sidebar ───
-st.sidebar.title("📊 Data Platform")
+st.sidebar.title("Data Platform")
 st.sidebar.markdown("---")
 page = st.sidebar.radio(
     "Navigation",
-    ["📈 Revenue Dashboard", "👥 Customer Analytics", "🔄 Pipeline Health", "📋 Data Quality"],
+    ["Revenue Dashboard", "Customer Analytics", "Pipeline Health", "Data Quality"],
 )
 st.sidebar.markdown("---")
-st.sidebar.info("Data refreshed every 5 minutes")
+st.sidebar.info("Queries are cached for up to 5 minutes. Reload or change pages to request data again.")
 
 
 # ─── Revenue Dashboard ───
-if page == "📈 Revenue Dashboard":
-    st.title("📈 Revenue Dashboard")
+if page == "Revenue Dashboard":
+    st.title("Revenue Dashboard")
     
     revenue_df = load_revenue_data()
     
@@ -137,8 +137,8 @@ if page == "📈 Revenue Dashboard":
 
 
 # ─── Customer Analytics ───
-elif page == "👥 Customer Analytics":
-    st.title("👥 Customer Analytics")
+elif page == "Customer Analytics":
+    st.title("Customer Analytics")
     
     customers_df = load_customer_data()
     
@@ -185,8 +185,8 @@ elif page == "👥 Customer Analytics":
 
 
 # ─── Pipeline Health ───
-elif page == "🔄 Pipeline Health":
-    st.title("🔄 Pipeline Health")
+elif page == "Pipeline Health":
+    st.title("Pipeline Health")
     
     pipeline_df = load_pipeline_metrics()
     
@@ -207,8 +207,8 @@ elif page == "🔄 Pipeline Health":
 
 
 # ─── Data Quality ───
-elif page == "📋 Data Quality":
-    st.title("📋 Data Quality")
+elif page == "Data Quality":
+    st.title("Data Quality")
     
     st.markdown("""
     ### Data Quality Checks
