@@ -66,19 +66,19 @@ def load_pipeline_metrics():
 
 
 # ─── Sidebar ───
-st.sidebar.title("📊 Data Platform")
+st.sidebar.title("Data Platform")
 st.sidebar.markdown("---")
 page = st.sidebar.radio(
     "Navigation",
-    ["📈 Revenue Dashboard", "👥 Customer Analytics", "🔄 Pipeline Health", "📋 Data Quality"],
+    ["Revenue Dashboard", "Customer Analytics", "Pipeline Health", "Data Quality"],
 )
 st.sidebar.markdown("---")
-st.sidebar.info("Data refreshed every 5 minutes")
+st.sidebar.info("Queries are cached for up to 5 minutes. Reload or change pages to request data again.")
 
 
 # ─── Revenue Dashboard ───
-if page == "📈 Revenue Dashboard":
-    st.title("📈 Revenue Dashboard")
+if page == "Revenue Dashboard":
+    st.title("Revenue Dashboard")
     
     revenue_df = load_revenue_data()
     
@@ -110,7 +110,7 @@ if page == "📈 Revenue Dashboard":
                 labels={'date_day': 'Date', 'total_revenue': 'Revenue ($)'},
             )
             fig.update_layout(height=400)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         
         with col_right:
             fig = px.bar(
@@ -119,7 +119,7 @@ if page == "📈 Revenue Dashboard":
                 labels={'date_day': 'Date', 'total_orders': 'Orders'},
             )
             fig.update_layout(height=400)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         
         # Category breakdown
         st.subheader("Revenue by Category")
@@ -133,12 +133,12 @@ if page == "📈 Revenue Dashboard":
                 names=list(cat_data.keys()),
                 title='Revenue Distribution by Category',
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
 
 # ─── Customer Analytics ───
-elif page == "👥 Customer Analytics":
-    st.title("👥 Customer Analytics")
+elif page == "Customer Analytics":
+    st.title("Customer Analytics")
     
     customers_df = load_customer_data()
     
@@ -164,7 +164,7 @@ elif page == "👥 Customer Analytics":
                 names=segment_counts.index,
                 title='Customer Segments',
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         
         with col_right:
             engagement_counts = customers_df['engagement_status'].value_counts()
@@ -174,19 +174,19 @@ elif page == "👥 Customer Analytics":
                 title='Engagement Status',
                 labels={'x': 'Status', 'y': 'Count'},
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
         
         # Top customers
         st.subheader("Top 10 Customers by Revenue")
         top_customers = customers_df.nlargest(10, 'lifetime_revenue')[
             ['customer_full_name', 'customer_segment', 'total_orders', 'lifetime_revenue', 'clv_score']
         ]
-        st.dataframe(top_customers, use_container_width=True)
+        st.dataframe(top_customers, width="stretch")
 
 
 # ─── Pipeline Health ───
-elif page == "🔄 Pipeline Health":
-    st.title("🔄 Pipeline Health")
+elif page == "Pipeline Health":
+    st.title("Pipeline Health")
     
     pipeline_df = load_pipeline_metrics()
     
@@ -203,24 +203,26 @@ elif page == "🔄 Pipeline Health":
         
         # Recent runs
         st.subheader("Recent Pipeline Runs")
-        st.dataframe(pipeline_df, use_container_width=True)
+        st.dataframe(pipeline_df, width="stretch")
 
 
 # ─── Data Quality ───
-elif page == "📋 Data Quality":
-    st.title("📋 Data Quality")
+elif page == "Data Quality":
+    st.title("Data Quality")
     
     st.markdown("""
-    ### Data Quality Framework
+    ### Data Quality Checks
+
+    These checks are not computed by this dashboard. Row counts below are observations, not proof that these checks passed.
     
     | Check Type | Status | Description |
     |-----------|--------|-------------|
-    | Schema Validation | ✅ Pass | All tables match expected schema |
-    | Uniqueness Tests | ✅ Pass | Primary keys are unique |
-    | Completeness Tests | ✅ Pass | Required fields are populated |
-    | Referential Integrity | ✅ Pass | Foreign key relationships valid |
-    | Freshness SLA | ✅ Pass | Data loaded within SLA window |
-    | Volume Reconciliation | ✅ Pass | Source/target counts match |
+    | Schema Validation | Not measured | All tables match expected schema |
+    | Uniqueness Tests | Not measured | Primary keys are unique |
+    | Completeness Tests | Not measured | Required fields are populated |
+    | Referential Integrity | Not measured | Foreign key relationships valid |
+    | Freshness SLA | Not measured | Data loaded within SLA window |
+    | Volume Reconciliation | Not measured | Source/target counts match |
     """)
     
     st.markdown("---")
@@ -252,6 +254,6 @@ elif page == "📋 Data Quality":
             color='Table',
         )
         fig.update_layout(height=400, showlegend=False)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
     except Exception as e:
         st.warning(f"Could not load table metrics: {e}")
