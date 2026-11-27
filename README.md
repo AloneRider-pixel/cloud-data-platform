@@ -34,7 +34,7 @@ graph LR
 |---|---|
 | Ingestion | Python 3.11, Requests, Pandas, PyArrow |
 | Orchestration | Apache Airflow |
-| Transformation | dbt Core |
+| Transformation | dbt Core project scaffold (models are not included in this repository) |
 | Object storage | AWS S3 / MinIO |
 | Warehouse | PostgreSQL |
 | Quality | Pytest, Airflow data-quality DAG |
