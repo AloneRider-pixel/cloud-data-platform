@@ -45,5 +45,5 @@ coverage.xml
 *.csv
 data/
 
-# Model weights
-models/
+# Model weights (root only; dbt/models holds SQL models and must stay tracked)
+/models/
