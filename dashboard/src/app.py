@@ -3,6 +3,8 @@ Analytics Dashboard - Streamlit Application
 Displays KPIs, revenue trends, customer analytics, and pipeline health.
 """
 import os
+from urllib.parse import quote_plus
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -11,7 +13,13 @@ from sqlalchemy import create_engine, text
 
 # ─── Configuration ───
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
-DATABASE_URL = f"postgresql://data_engineer:data_password@{POSTGRES_HOST}:5432/data_platform"
+POSTGRES_USER = os.getenv("POSTGRES_USER", "data_engineer")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "data_password")  # local demo default, same as docker-compose
+POSTGRES_DB = os.getenv("POSTGRES_DB", "data_platform")
+DATABASE_URL = (
+    f"postgresql://{quote_plus(POSTGRES_USER)}:{quote_plus(POSTGRES_PASSWORD)}"
+    f"@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
+)
 
 st.set_page_config(
     page_title="Data Platform Analytics",
